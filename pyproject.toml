@@ -1,17 +1,24 @@
 [project]
-name = "github-mcp"
-version = "1.1.0"
+name = "github-mcp-readonly"
+version = "1.2.0"
 description = "Read-only MCP server that lets an AI assistant answer questions about your GitHub repos, issues, pull requests and commits."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "AbdulMuhaiminKhan" }]
+authors = [{ name = "Abdul Muhaimin Khan" }]
 requires-python = ">=3.10"
 keywords = ["mcp", "model-context-protocol", "github", "llm", "tool-use", "evaluation"]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
     "mcp>=2.3,<3",
@@ -28,7 +35,9 @@ dev = ["pytest>=8", "pytest-asyncio>=0.23", "anthropic>=1.11", "ruff>=0.6", "myp
 github-mcp = "github_mcp.server:main"
 
 [project.urls]
+Homepage = "https://abdulmuhaiminkhan.github.io/github-mcp/"
 Repository = "https://github.com/AbdulMuhaiminKhan/github-mcp"
+Results = "https://abdulmuhaiminkhan.github.io/github-mcp/"
 
 [build-system]
 requires = ["hatchling>=1.27"]
@@ -36,6 +45,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/github_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/github_mcp", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

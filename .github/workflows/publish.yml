@@ -1,0 +1,66 @@
+name: publish
+# Runs when a GitHub release is published (tag vX.Y.Z matching pyproject.toml and server.json).
+# One-time setup on pypi.org: add a "trusted publisher" for this repo and this workflow
+# (Account settings > Publishing > Add a new pending publisher: project github-mcp-readonly,
+# owner AbdulMuhaiminKhan, repo github-mcp, workflow publish.yml, environment pypi).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check versions match the tag
+        if: github.event_name == 'release'
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          grep -q "^version = \"$tag\"" pyproject.toml || { echo "pyproject.toml version != $tag"; exit 1; }
+          grep -q "\"version\": \"$tag\"" server.json || { echo "server.json version != $tag"; exit 1; }
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # PyPI trusted publishing, no API token stored anywhere
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  mcp-registry:
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # the registry verifies io.github.AbdulMuhaiminKhan/* through GitHub OIDC
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Wait for PyPI to serve the new version
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('server.json'))['version'])")
+          for i in $(seq 1 30); do
+            curl -sf "https://pypi.org/pypi/github-mcp-readonly/$version/json" > /dev/null && exit 0
+            sleep 10
+          done
+          echo "PyPI never served $version"; exit 1
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish

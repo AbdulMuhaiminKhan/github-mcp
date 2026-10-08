@@ -48,7 +48,7 @@ def build_server(toolset: str = "v1", client: GitHubClient | None = None) -> MCP
         finally:
             await gh.aclose()
 
-    server = MCPServer(name="github-readonly", version="1.1.0", lifespan=lifespan)
+    server = MCPServer(name="github-readonly", version="1.2.0", lifespan=lifespan)
 
     async def call(fn, *args, **kwargs) -> Any:
         """Run a GitHub call, mapping expected failures to a ToolError the model can read."""

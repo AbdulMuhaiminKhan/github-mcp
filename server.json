@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.AbdulMuhaiminKhan/github-mcp",
+  "title": "GitHub (read-only)",
+  "description": "Read-only GitHub repos, issues, PRs and commits, with tool descriptions tuned on a benchmark.",
+  "repository": {
+    "url": "https://github.com/AbdulMuhaiminKhan/github-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://abdulmuhaiminkhan.github.io/github-mcp/",
+  "version": "1.2.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "github-mcp-readonly",
+      "version": "1.2.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "GITHUB_TOKEN",
+          "description": "Fine-grained GitHub token with read-only access (Metadata, Contents, Issues, Pull requests).",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "GITHUB_MCP_TOOLSET",
+          "description": "Tool descriptions to serve: v2 (default, optimized), v1 or v1b (benchmark baselines).",
+          "isRequired": false,
+          "default": "v2"
+        }
+      ]
+    }
+  ]
+}

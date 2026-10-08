@@ -18,3 +18,5 @@ jobs:
       - run: pytest -q
       # Harness self-test: the oracle must score 100% on v2 against the offline benchmark repos.
       - run: python eval/run_eval.py --fake-github --backend oracle --toolset v2 --min-correct 100
+      # The harness also benchmarks other MCP servers: the oracle must score 100% on the example server.
+      - run: python eval/run_eval.py --server "python examples/notes_server.py" --questions examples/notes_questions.jsonl --backend oracle --results-dir /tmp/results --min-correct 100
