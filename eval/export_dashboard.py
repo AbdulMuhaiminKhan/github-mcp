@@ -79,7 +79,7 @@ def summarize(path: Path) -> dict[str, Any]:
 def descriptions() -> dict[str, Any]:
     out = {name: load_toolset(name) for name in ("v1", "v2")}
     best = ROOT / "eval" / "optimized" / "best.json"
-    if best.is_file():
+    if best.is_file() and load_toolset(str(best)) != out["v1"]:  # skip when the optimizer kept nothing
         out["optimized"] = load_toolset(str(best))
     return {k: {"tools": v["tools"], "params": v["params"], "bare_names": v["allow_bare_repo_name"]} for k, v in out.items()}
 

@@ -1,0 +1,37 @@
+[
+  {
+    "iteration": 0,
+    "train": 65.0,
+    "heldout": 60.0,
+    "accepted": true,
+    "file": "iter0.json"
+  },
+  {
+    "iteration": 1,
+    "train": 70.0,
+    "heldout": 55.0,
+    "accepted": false,
+    "file": "iter1.json"
+  },
+  {
+    "iteration": 2,
+    "train": 66.66666666666667,
+    "heldout": 50.0,
+    "accepted": false,
+    "file": "iter2.json"
+  },
+  {
+    "iteration": 3,
+    "train": 71.66666666666667,
+    "heldout": 40.0,
+    "accepted": false,
+    "file": "iter3.json"
+  },
+  {
+    "iteration": 4,
+    "train": 71.66666666666667,
+    "heldout": 40.0,
+    "accepted": false,
+    "file": "iter4.json"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "allow_bare_repo_name": false,
+  "tools": {
+    "list_repositories": "Gets a list of repositories. Use this tool to list all repositories or filter by visibility, sort order, and limit the number of results. Do not use this tool to get detailed information about a single repository. [Returns: List of repositories] Arguments: visibility (str): 'all', 'public', or 'private'. limit (int): Maximum number of repositories to return. Default is 30. sort (str): 'created', 'updated', or 'full_name'. Example: {'visibility': 'public', 'limit': 10, 'sort': 'created'}",
+    "get_repository": "Gets detailed information about a specific repository. Use this tool when you need detailed information about a single repository. Do not use this tool to list repositories. [Returns: Detailed repository information] Arguments: repo (str): Full repository name in the format 'owner/name'. Example: 'octocat/hello-world'",
+    "list_open_issues": "Gets a list of open issues in a repository. Use this tool to find open issues in a specific repository. Do not use this tool to search for issues across multiple repositories. [Returns: List of open issues] Arguments: repo (str): Full repository name in the format 'owner/name'. label (str): Filter by issue label. Example: 'bug' state (str): 'open' or 'closed'. Example: 'open'",
+    "search_issues": "Searches for issues across repositories. Use this tool when you need to search for issues based on a query. Do not use this tool to list open issues in a specific repository. [Returns: List of matching issues] Arguments: query (str): Search text. Example: 'crash on startup'",
+    "list_pull_requests": "Gets a list of pull requests in a repository. Use this tool to find pull requests in a specific repository. Do not use this tool to list repositories. [Returns: List of pull requests] Arguments: repo (str): Full repository name in the format 'owner/name'. state (str): 'open' or 'closed'. Example: 'closed'",
+    "get_recent_commits": "Gets recent activity for a repository. Use this tool to find recent commits in a specific repository. Do not use this tool to list repositories. [Returns: List of recent commits] Arguments: repo (str): Full repository name in the format 'owner/name'. since_days (int): Number of days to look back. Example: 7"
+  },
+  "params": {
+    "repo": "Full repository name in the format 'owner/name'. Example: 'octocat/hello-world'",
+    "query": "Search text. Example: 'crash on startup'",
+    "limit": "Maximum number of results to return. Default is 30. Example: 10",
+    "visibility": "Visibility of repositories. 'all', 'public', or 'private'. Example: 'public'",
+    "sort": "Sort order. 'created', 'updated', or 'full_name'. Example: 'created'",
+    "label": "Filter by issue label. Example: 'bug'",
+    "state": "State of issues or pull requests. 'open' or 'closed'. Example: 'open'",
+    "pr_state": "State of pull requests. 'open' or 'closed'. Example: 'closed'",
+    "since_days": "Number of days to look back for recent activity. Example: 7",
+    "author": "Author.",
+    "branch": "Branch."
+  }
+}

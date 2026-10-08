@@ -1,0 +1,24 @@
+{
+  "allow_bare_repo_name": false,
+  "tools": {
+    "list_repositories": "Gets repositories.",
+    "get_repository": "Gets info about a repo.",
+    "list_open_issues": "Gets issues.",
+    "search_issues": "Searches GitHub.",
+    "list_pull_requests": "Gets pull requests.",
+    "get_recent_commits": "Gets recent activity for a repo."
+  },
+  "params": {
+    "repo": "The repo.",
+    "query": "Search text.",
+    "limit": "How many.",
+    "visibility": "Visibility.",
+    "sort": "Sort order.",
+    "label": "Label.",
+    "state": "State.",
+    "pr_state": "State.",
+    "since_days": "Days.",
+    "author": "Author.",
+    "branch": "Branch."
+  }
+}

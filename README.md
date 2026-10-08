@@ -95,12 +95,12 @@ The offline run against the fake GitHub gave the same picture (65% / 82% / 95%).
 
 **A second model, llama3.1:8b**, same questions and settings:
 
-| Configuration (llama3.1:8b) | Correct |
-|---|---|
-| v1: vague descriptions | 32% |
-| v1b: v1 + bare repo names | 47% |
-| v2: rewritten descriptions | 92% |
-| v2 on held-out questions | 95% |
+| Configuration (llama3.1:8b) | Correct | Wrong Arguments | Wrong Tool | Tool Failed | Input tokens |
+|---|---|---|---|---|---|
+| v1: vague descriptions | 32% | 7% | 12% | 50% | 643 |
+| v1b: v1 + bare repo names | 47% | 7% | 12% | 35% | 643 |
+| v2: rewritten descriptions | 92% | 5% | 2% | 2% | 1559 |
+| v2 on held-out questions | 95% | 0% | 0% | 5% | 1558 |
 
 Llama picked the right tool 88% of the time even on v1. It failed on arguments: it asked for
 `limit=100` on tools capped at 50 again and again, and passed `owner/repo` where a bare name was

@@ -152,8 +152,8 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; display: grid; ga
   <header class="hero">
     <div class="eyebrow">github-mcp · tool-selection benchmark</div>
     <h1 aria-label="63 percent to 95 percent"><span class="from" id="h-from">63%</span><span class="arrow">→</span><span class="to" id="h-to">95%</span></h1>
-    <p class="sub" id="h-sub">How often a 7B model picks the right GitHub tool with the right arguments, before and after rewriting the
-      tool descriptions. <strong>About half of the gain came from accepting bare repo names, not from the new wording.</strong></p>
+    <p class="sub">How often a small local model picks the right GitHub tool with the right arguments, before and after rewriting the
+      tool descriptions. <strong id="h-sub">17 of the 32 points came from accepting bare repo names, not from the new wording.</strong></p>
     <div class="meta-row" id="h-meta"></div>
     <div class="links">
       <a class="btn primary" href="https://github.com/AbdulMuhaiminKhan/github-mcp">Source on GitHub</a>
@@ -248,6 +248,11 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; display: grid; ga
   function hero() {
     const v1 = cfg(model, "v1", "questions"), v2 = cfg(model, "v2", "questions");
     if (v1 && v2) { $("#h-from").textContent = pct(v1.pct.correct); $("#h-to").textContent = pct(v2.pct.correct); }
+    const v1b = cfg(model, "v1b", "questions");
+    if (v1 && v1b && v2) {
+      const bare = Math.round(v1b.pct.correct) - Math.round(v1.pct.correct), total = Math.round(v2.pct.correct) - Math.round(v1.pct.correct);
+      $("#h-sub").textContent = `${bare} of the ${total} points came from accepting bare repo names, not from the new wording.`;
+    }
     $("#h-meta").innerHTML = [
       `model ${esc(model)}`, `${v2 ? v2.n : 60} questions × ${v2 ? v2.runs : 3} runs`, "6 read-only tools", "$0 · runs locally",
     ].map((t) => `<span>${t}</span>`).join("");
