@@ -9,8 +9,8 @@ A read-only **Model Context Protocol** server that lets Claude (or any MCP clien
 my GitHub repos, issues, pull requests and commits. It comes with a **benchmark** that measures how often
 the model picks the right tool with the right arguments.
 
-**Rewriting the tool descriptions took a local 7B model from 63% to 95% correct (90% on held-out
-questions).** An ablation shows where those 32 points came from, and most of them were not the prose:
+**Rewriting the tool descriptions took a local 7B model from 63% to 95% correct, and from 60% to 90% on
+held-out questions it was never tuned on.** An ablation shows where those 32 points came from, and most of them were not the prose:
 
 | Change | Points | What it was |
 |---|---|---|
@@ -87,6 +87,7 @@ configuration, medians reported. The three runs differed by at most 2 points on 
 | v1: vague descriptions | 63% | 0% | 8% | 28% | 614 |
 | v1b: v1 + bare repo names | 80% | 0% | 8% | 12% | 614 |
 | v2: rewritten descriptions | 95% | 0% | 2% | 3% | 1533 |
+| v1 on held-out questions | 60% | 5% | 15% | 20% | 613 |
 | v2 on held-out questions | 90% | 0% | 5% | 5% | 1532 |
 <!-- RESULTS:END -->
 
@@ -153,7 +154,25 @@ failures came from calls the server rejected.
    return exact totals instead of a page-sized count.
 5. **Error messages carry a next step** ("Call list_repositories to check the exact name").
 
-### 4. What's left, and trade-offs
+### 4. The automatic optimizer overfit, and the guard caught it
+
+`eval/optimize.py` shows a model its training failures, asks it to rewrite the descriptions, and keeps a
+candidate only if training accuracy rises **and** held-out accuracy doesn't drop. Starting from v1, with
+qwen2.5:7b rewriting its own tools (offline data, 4 iterations):
+
+| Iteration | Train (60) | Held-out (20) | Kept |
+|---|---|---|---|
+| 0 (v1) | 65% | 60% | baseline |
+| 1 | 70% | 55% | no |
+| 2 | 67% | 50% | no |
+| 3 | 72% | 40% | no |
+| 4 | 72% | 40% | no |
+
+Every rewrite raised training accuracy and lowered held-out accuracy, so the guard rejected all of them.
+The 7B model wrote descriptions that fit the questions it had just seen, not the tools. Without the held-out
+check, iteration 3 would have looked like a 7-point win. The hand-written v2 is what generalized.
+
+### 5. What's left, and trade-offs
 
 - **The 3 remaining v2 misses all ask for something the API doesn't have:** `state: "merged"` for pull
   requests, `sort: "stars"` for repos, and `state: "closed"` on the open-issues tool. I didn't reword around
