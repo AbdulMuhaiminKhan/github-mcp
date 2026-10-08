@@ -42,6 +42,8 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true   # lets a re-run finish the registry step after PyPI already has this version
 
   mcp-registry:
     needs: pypi
@@ -62,5 +64,14 @@ jobs:
             sleep 10
           done
           echo "PyPI never served $version"; exit 1
-      - run: ./mcp-publisher login github-oidc
-      - run: ./mcp-publisher publish
+      - name: Publish to the MCP Registry
+        # The registry sometimes answers 504 under load; retry, and treat "already published" as success.
+        run: |
+          for i in 1 2 3 4 5; do
+            ./mcp-publisher login github-oidc
+            if out=$(./mcp-publisher publish 2>&1); then echo "$out"; exit 0; fi
+            echo "$out"
+            echo "$out" | grep -qi "already exists\|duplicate\|cannot publish duplicate" && exit 0
+            sleep $((i * 60))
+          done
+          exit 1
