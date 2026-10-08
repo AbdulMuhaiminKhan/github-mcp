@@ -1,0 +1,60 @@
+{"id": "q01", "question": "What repositories do I have on GitHub?", "expected_tool": "list_repositories", "category": "direct", "expected_args": {}}
+{"id": "q02", "question": "How many private repos do I own?", "expected_tool": "list_repositories", "category": "direct", "expected_args": {"visibility": {"any": ["private", "all"]}}}
+{"id": "q03", "question": "Which of my repositories was updated most recently?", "expected_tool": "list_repositories", "category": "overlap:commits", "expected_args": {"sort": {"any": ["updated", "pushed"]}}}
+{"id": "q04", "question": "Do I have any repos written in TypeScript?", "expected_tool": "list_repositories", "category": "overlap:get_repository", "expected_args": {}}
+{"id": "q05", "question": "Find my repositories related to machine learning.", "expected_tool": "list_repositories", "category": "overlap:search", "expected_args": {}}
+{"id": "q06", "question": "Which of my projects has the most stars?", "expected_tool": "list_repositories", "category": "overlap:get_repository", "expected_args": {}}
+{"id": "q07", "question": "List my public repositories.", "expected_tool": "list_repositories", "category": "direct", "expected_args": {"visibility": "public"}}
+{"id": "q08", "question": "What's the exact name of my portfolio website repo?", "expected_tool": "list_repositories", "category": "direct", "expected_args": {}}
+{"id": "q09", "question": "Give me an overview of everything in my GitHub account.", "expected_tool": "list_repositories", "category": "vague", "expected_args": {}}
+{"id": "q10", "question": "Which repos haven't I pushed to in a long time?", "expected_tool": "list_repositories", "category": "overlap:commits", "expected_args": {}}
+{"id": "q11", "question": "What programming language is {repo} written in?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q12", "question": "How many stars does {repo} have?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q13", "question": "What license does {repo_name} use?", "expected_tool": "get_repository", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q14", "question": "What's the default branch of {repo}?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q15", "question": "Tell me about the {repo_name} project.", "expected_tool": "get_repository", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q16", "question": "How many forks does {repo2} have?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo2}"}}
+{"id": "q17", "question": "What topics are tagged on {repo}?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q18", "question": "When was {repo} created?", "expected_tool": "get_repository", "category": "overlap:commits", "expected_args": {"repo": "{repo}"}}
+{"id": "q19", "question": "Is {repo2} public or private?", "expected_tool": "get_repository", "category": "overlap:list_repos", "expected_args": {"repo": "{repo2}"}}
+{"id": "q20", "question": "Describe what {repo_name} is about.", "expected_tool": "get_repository", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q21", "question": "What open issues are there in {repo}?", "expected_tool": "list_open_issues", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q22", "question": "How many open issues does {repo} have?", "expected_tool": "list_open_issues", "category": "overlap:get_repository", "expected_args": {"repo": "{repo}"}}
+{"id": "q23", "question": "Show me the open bugs in {repo}.", "expected_tool": "list_open_issues", "category": "overlap:search", "expected_args": {"repo": "{repo}", "label": {"any": ["bug", null]}}}
+{"id": "q24", "question": "What open issues are waiting for me in {repo_name}?", "expected_tool": "list_open_issues", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q25", "question": "List open issues labeled 'enhancement' in {repo2}.", "expected_tool": "list_open_issues", "category": "direct", "expected_args": {"repo": "{repo2}", "label": "enhancement"}}
+{"id": "q26", "question": "Is anything still unresolved in {repo}?", "expected_tool": "list_open_issues", "category": "vague", "expected_args": {"repo": "{repo}"}}
+{"id": "q27", "question": "What's the newest issue someone opened on {repo}?", "expected_tool": "list_open_issues", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q28", "question": "Show the to-do list for {repo2}.", "expected_tool": "list_open_issues", "category": "vague", "expected_args": {"repo": "{repo2}"}}
+{"id": "q29", "question": "Which open issues in {repo} have the most discussion?", "expected_tool": "list_open_issues", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q30", "question": "Are there any open issues on {repo_name}?", "expected_tool": "list_open_issues", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q31", "question": "Find issues mentioning 'authentication' across all my repos.", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "authentication"}, "repo": null}}
+{"id": "q32", "question": "Which issues have been closed in {repo}?", "expected_tool": "search_issues", "category": "overlap:list_open_issues", "expected_args": {"repo": "{repo}", "state": "closed"}}
+{"id": "q33", "question": "Have I ever filed an issue about a memory leak?", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "leak"}, "repo": null}}
+{"id": "q34", "question": "Search my issues for 'timeout'.", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "timeout"}, "repo": null}}
+{"id": "q35", "question": "Is there an issue about dark mode in {repo}?", "expected_tool": "search_issues", "category": "overlap:list_open_issues", "expected_args": {"query": {"contains": "dark"}, "repo": "{repo}"}}
+{"id": "q36", "question": "Show me all closed issues across my projects.", "expected_tool": "search_issues", "category": "overlap:list_open_issues", "expected_args": {"state": "closed", "repo": null}}
+{"id": "q37", "question": "Did anyone report a crash on startup in {repo_name}?", "expected_tool": "search_issues", "category": "bare_name", "expected_args": {"query": {"contains": "crash"}, "repo": "{repo}"}}
+{"id": "q38", "question": "Find issues that talk about Docker.", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "docker"}, "repo": null}}
+{"id": "q39", "question": "Look for any issue discussing the README in {repo2}.", "expected_tool": "search_issues", "category": "overlap:list_open_issues", "expected_args": {"query": {"contains": "readme"}, "repo": "{repo2}"}}
+{"id": "q40", "question": "Are there issues anywhere in my account about rate limiting?", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "rate"}, "repo": null}}
+{"id": "q41", "question": "What were the last 5 commits to {repo}?", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}", "limit": 5}}
+{"id": "q42", "question": "Who made the most recent change to {repo}?", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q43", "question": "What changed in {repo_name} this week?", "expected_tool": "get_recent_commits", "category": "bare_name", "expected_args": {"repo": "{repo}", "since_days": {"range": [6, 8]}}}
+{"id": "q44", "question": "Show me commits from the last 3 days in {repo2}.", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo2}", "since_days": 3}}
+{"id": "q45", "question": "What did I work on yesterday in {repo}?", "expected_tool": "get_recent_commits", "category": "vague", "expected_args": {"repo": "{repo}", "since_days": {"range": [1, 2]}}}
+{"id": "q46", "question": "What was the latest commit message on {repo}?", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q47", "question": "List commits by {owner} in {repo} over the past month.", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}", "author": "{owner}", "since_days": {"range": [28, 31]}}}
+{"id": "q48", "question": "Has {repo2} had any activity in the last 30 days?", "expected_tool": "get_recent_commits", "category": "overlap:get_repository", "expected_args": {"repo": "{repo2}", "since_days": {"range": [28, 31]}}}
+{"id": "q49", "question": "What's been happening in {repo_name} lately?", "expected_tool": "get_recent_commits", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "q50", "question": "Show the commit history of {repo}.", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}"}}
+{"id": "q51", "question": "What pull requests are open in {repo}?", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo}", "state": "open"}}
+{"id": "q52", "question": "How many PRs are waiting for review on {repo}?", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo}", "state": "open"}}
+{"id": "q53", "question": "Which pull requests have been merged in {repo}?", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo}", "state": {"any": ["closed", "all"]}}}
+{"id": "q54", "question": "Show me all pull requests in {repo2}, open or closed.", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo2}", "state": "all"}}
+{"id": "q55", "question": "Is anyone working on a PR for {repo_name} right now?", "expected_tool": "list_pull_requests", "category": "bare_name", "expected_args": {"repo": "{repo}", "state": "open"}}
+{"id": "q56", "question": "Are there any draft changes proposed in {repo}?", "expected_tool": "list_pull_requests", "category": "overlap:list_open_issues", "expected_args": {"repo": "{repo}"}}
+{"id": "q57", "question": "What's waiting to be merged in {repo2}?", "expected_tool": "list_pull_requests", "category": "vague", "expected_args": {"repo": "{repo2}", "state": "open"}}
+{"id": "q58", "question": "Which PRs were closed without merging in {repo}?", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo}", "state": {"any": ["closed", "all"]}}}
+{"id": "q59", "question": "Are there any open pull requests on {repo_name}?", "expected_tool": "list_pull_requests", "category": "bare_name", "expected_args": {"repo": "{repo}", "state": "open"}}
+{"id": "q60", "question": "Which proposed changes were opened against {repo} recently?", "expected_tool": "list_pull_requests", "category": "overlap:get_recent_commits", "expected_args": {"repo": "{repo}"}}

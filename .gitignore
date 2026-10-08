@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+# eval/results/*.jsonl is committed on purpose: the results are the evidence behind the README numbers.

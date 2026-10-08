@@ -1,0 +1,20 @@
+{"id": "h01", "question": "Do I own any repositories that are written in Python?", "expected_tool": "list_repositories", "category": "overlap:get_repository", "expected_args": {}}
+{"id": "h02", "question": "Count all of my repos.", "expected_tool": "list_repositories", "category": "direct", "expected_args": {}}
+{"id": "h03", "question": "Which of my repositories got the most recent push?", "expected_tool": "list_repositories", "category": "overlap:commits", "expected_args": {"sort": {"any": ["pushed", "updated"]}}}
+{"id": "h04", "question": "Under which license is {repo2} published?", "expected_tool": "get_repository", "category": "direct", "expected_args": {"repo": "{repo2}"}}
+{"id": "h05", "question": "What's the main branch called in {repo_name}?", "expected_tool": "get_repository", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "h06", "question": "What tags or topics does {repo_name} have?", "expected_tool": "get_repository", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "h07", "question": "Is {repo} a private repository?", "expected_tool": "get_repository", "category": "overlap:list_repos", "expected_args": {"repo": "{repo}"}}
+{"id": "h08", "question": "Give me the list of bugs still open in {repo2}.", "expected_tool": "list_open_issues", "category": "overlap:search", "expected_args": {"repo": "{repo2}", "label": {"any": ["bug", null]}}}
+{"id": "h09", "question": "How many issues are open right now on {repo_name}?", "expected_tool": "list_open_issues", "category": "bare_name", "expected_args": {"repo": "{repo}"}}
+{"id": "h10", "question": "Show the open documentation issues in {repo}.", "expected_tool": "list_open_issues", "category": "direct", "expected_args": {"repo": "{repo}", "label": "documentation"}}
+{"id": "h11", "question": "Has anybody written an issue about a typo?", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "typo"}, "repo": null}}
+{"id": "h12", "question": "Find the closed issues in {repo2}.", "expected_tool": "search_issues", "category": "overlap:list_open_issues", "expected_args": {"repo": "{repo2}", "state": "closed"}}
+{"id": "h13", "question": "Search all my issues for the word 'export'.", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "export"}, "repo": null}}
+{"id": "h14", "question": "Was there ever an issue about upgrading Flask?", "expected_tool": "search_issues", "category": "direct", "expected_args": {"query": {"contains": "flask"}, "repo": null}}
+{"id": "h15", "question": "What PRs are still open on {repo2}?", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo2}", "state": "open"}}
+{"id": "h16", "question": "Has any pull request been merged in {repo_name}?", "expected_tool": "list_pull_requests", "category": "bare_name", "expected_args": {"repo": "{repo}", "state": {"any": ["closed", "all"]}}}
+{"id": "h17", "question": "Show me every pull request ever opened on {repo}.", "expected_tool": "list_pull_requests", "category": "direct", "expected_args": {"repo": "{repo}", "state": "all"}}
+{"id": "h18", "question": "Who pushed the latest commit to {repo2}?", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo2}"}}
+{"id": "h19", "question": "Give me the last 3 commits on {repo_name}.", "expected_tool": "get_recent_commits", "category": "bare_name", "expected_args": {"repo": "{repo}", "limit": 3}}
+{"id": "h20", "question": "Which commits landed in {repo} during the last two weeks?", "expected_tool": "get_recent_commits", "category": "direct", "expected_args": {"repo": "{repo}", "since_days": {"range": [14, 14]}}}

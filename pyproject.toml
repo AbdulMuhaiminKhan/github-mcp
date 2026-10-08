@@ -1,0 +1,55 @@
+[project]
+name = "github-mcp"
+version = "1.1.0"
+description = "Read-only MCP server that lets an AI assistant answer questions about your GitHub repos, issues, pull requests and commits."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "AbdulMuhaiminKhan" }]
+requires-python = ">=3.10"
+keywords = ["mcp", "model-context-protocol", "github", "llm", "tool-use", "evaluation"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "mcp>=2.3,<3",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+eval = ["anthropic>=1.11"]
+plot = ["matplotlib>=3.8"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "anthropic>=1.11", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+github-mcp = "github_mcp.server:main"
+
+[project.urls]
+Repository = "https://github.com/AbdulMuhaiminKhan/github-mcp"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/github_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B008", "B905"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true

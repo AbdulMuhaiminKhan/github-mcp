@@ -1,0 +1,37 @@
+name: eval
+# Re-runs the tool-selection benchmark whenever tool descriptions change, so accuracy can't
+# silently regress. Uses the offline fake GitHub (no GitHub token) and Claude Haiku (cents per run).
+# Needs an ANTHROPIC_API_KEY repository secret; without it the job is skipped.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/github_mcp/descriptions.py"
+      - "src/github_mcp/server.py"
+      - "eval/questions.jsonl"
+      - "eval/heldout.jsonl"
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: actions/setup-python@v5
+        if: env.ANTHROPIC_API_KEY != ''
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[eval]'
+        if: env.ANTHROPIC_API_KEY != ''
+      - name: v2 on the main questions
+        if: env.ANTHROPIC_API_KEY != ''
+        run: python eval/run_eval.py --fake-github --backend anthropic --model claude-haiku-4-5 --toolset v2 --min-correct 85 --markdown
+      - name: v2 on the held-out questions
+        if: env.ANTHROPIC_API_KEY != ''
+        run: python eval/run_eval.py --fake-github --backend anthropic --model claude-haiku-4-5 --toolset v2 --questions eval/heldout.jsonl --min-correct 80 --markdown
+      - uses: actions/upload-artifact@v4
+        if: env.ANTHROPIC_API_KEY != ''
+        with:
+          name: eval-results
+          path: eval/results/

@@ -1,0 +1,13 @@
+{"id": "a01", "question": "How many open issues are there in {repo}?", "expect": ["\\b6\\b"]}
+{"id": "a02", "question": "How many open bugs does {repo} have?", "expect": ["\\b3\\b"]}
+{"id": "a03", "question": "Between {repo} and {repo2}, which one has more open issues, and how many does each have?", "expect": ["bench-app", "\\b6\\b", "\\b3\\b"]}
+{"id": "a04", "question": "Which open issue in {repo} has the most comments?", "expect": ["timeout|csv"]}
+{"id": "a05", "question": "Is the memory leak issue in {repo} closed, and was a pull request for it merged?", "expect": ["closed", "merged"]}
+{"id": "a06", "question": "What license does {repo2} use?", "expect": ["\\bISC\\b"]}
+{"id": "a07", "question": "What was the message of the most recent commit to {repo}?", "expect": ["v0\\.3\\.0"]}
+{"id": "a08", "question": "How many open pull requests does {repo} have?", "expect": ["\\b2\\b"]}
+{"id": "a09", "question": "Which pull request in {repo} was closed without being merged?", "expect": ["sqlite"]}
+{"id": "a10", "question": "Besides me, who else has committed to {repo}?", "expect": ["sam lee"]}
+{"id": "a11", "question": "What state is the Docker issue in {repo2} in?", "expect": ["closed"]}
+{"id": "a12", "question": "What label does the dark mode issue in {repo} have?", "expect": ["enhancement"]}
+{"id": "a13", "question": "What language is {repo2} written in, and how many open issues does it have?", "expect": ["typescript", "\\b3\\b"]}
