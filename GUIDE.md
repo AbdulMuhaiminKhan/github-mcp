@@ -1,13 +1,15 @@
-# GitHub MCP Server: Implementation Guide
+# GitHub MCP Server: Technical Guide
 
-Everything referenced here is real, runnable code in this folder:
+Setup, internals and the full evaluation workflow. Everything referenced here is runnable code in this repo:
 
 ```
 github-mcp/
-├── README.md                         ← the portfolio README (results table waits for your numbers)
+├── README.md                         ← results and the decision file
 ├── GUIDE.md                          ← you are here
 ├── WINDOWS.md                        ← the same steps in PowerShell
-├── REVIEW.md                         ← the project review and what changed because of it
+├── server.json                       ← MCP Registry entry (published with the PyPI package)
+├── docs/                             ← results dashboard (GitHub Pages)
+├── examples/                         ← benchmark any MCP server: a small example server and questions
 ├── pyproject.toml / LICENSE / Dockerfile
 ├── .env.example / .gitignore
 ├── claude_desktop_config.example.json (+ .docker.example.json)
@@ -25,15 +27,14 @@ github-mcp/
 │   ├── seed_repos.py                 ← creates them as private repos in your account
 │   ├── fake_github.py                ← serves them offline (no token needed)
 │   ├── optimize.py                   ← automatic description optimizer with a held-out guard
-│   └── plot_results.py               ← results chart for the README
-└── tests/                            ← 52 offline tests (server, harness, data, seed script)
+│   ├── plot_results.py               ← results chart for the README
+│   └── export_dashboard.py           ← writes docs/data.js for the dashboard
+└── tests/                            ← offline tests (server, harness, data, seed script)
 ```
 
 > **Built against `mcp` 2.3.** v2 of the SDK renamed `FastMCP` → `MCPServer`
 > (`from mcp.server.mcpserver import MCPServer`), and tool objects use `input_schema` / `is_error`.
 
-> **About the numbers.** The 64% / 22% / 14% baseline and 90%+ target come from the career guide.
-> They are **illustrative targets, not results**. Publish what the harness measures.
 
 ---
 
@@ -144,7 +145,7 @@ picks the right tool, v1 still scores 83%, because all 10 bare-name questions fa
 `GITHUB_MCP_TOOLSET` also accepts a path to a JSON file of the same shape, which is how
 `eval/optimize.py` tests its candidates.
 
-### Design details worth mentioning in interviews
+### Design details
 
 - **Errors are written for the model.** Every failure becomes a `ToolError` whose text says what to
   do next ("Not found... Call list_repositories to check the exact name"), returned as
@@ -286,33 +287,4 @@ improves **and** held-out accuracy doesn't drop. Candidates are saved as `eval/o
 the winner as `best.json`, and the trajectory as `history.json`. Run the server with any of them:
 `GITHUB_MCP_TOOLSET=eval/optimized/best.json`.
 
-A good story for the README: compare the hand-written v2 against the optimizer's best on the held-out
-set.
-
----
-
-## 5. Presenting it
-
-1. Run v1, v1b and v2 (3 runs each) on the main set, and v2 on the held-out set, on at least one
-   local model. If you can, add one Claude run.
-2. `python eval/plot_results.py eval/results/select-*.jsonl -o docs/results.png`. It also prints a
-   Markdown table to paste under the chart.
-3. Fill in the README's results section and Decision File from the reports (`--markdown`).
-4. Record a 30-second GIF of Claude Desktop answering a question with the tool call visible
-   (ScreenToGif on Windows), saved as `docs/demo.gif`.
-5. Push, and check that the CI badge is green. Optionally add an `ANTHROPIC_API_KEY` repository
-   secret so the `eval` workflow re-checks accuracy whenever descriptions change.
-
-### Resume bullets (fill in measured numbers)
-
-- Built a **Model Context Protocol server in Python** connecting Claude to the GitHub API through
-  **6 read-only tools**, with least-privilege token auth, rate-limit, retry and ETag handling,
-  schema-validated inputs, and **52 offline tests** in CI across Python 3.10–3.13.
-- Designed a **tool-use benchmark** (60 questions + 20 held-out + 13 multi-step) over seeded GitHub
-  repos with known answers, grading tool choice, arguments and final answers; it runs offline in CI
-  through a fake GitHub API.
-- Raised tool-selection accuracy from **[v1]% to [v2]%** on a local 7B model (**[h]%** on held-out
-  questions) by rewriting tool descriptions into mutually exclusive contracts; an ablation attributed
-  **[x] points** to descriptions and **[y] points** to input handling.
-- Built an **automatic description optimizer** that rewrites descriptions from failure analysis and
-  accepts changes only when held-out accuracy doesn't drop.
+The README compares the hand-written v2 against the optimizer's best on the held-out set.

@@ -109,5 +109,5 @@ git init
 git add .
 git status                 # confirm .env is NOT listed
 git commit -m "GitHub MCP server with tool-selection benchmark"
-gh repo create github-mcp --public --source . --push     # or create it on github.com and git push
+gh repo create github-mcp --public --source . --push     # or create it on github.com, then git push
 ```

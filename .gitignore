@@ -7,3 +7,8 @@ __pycache__/
 .mypy_cache/
 # eval/results/*.jsonl is committed on purpose: the results are the evidence behind the README numbers.
 dist/
+
+# Personal notes kept out of the public repo
+REVIEW.md
+README_TEMPLATE.md
+eval/results/dashboard.html
