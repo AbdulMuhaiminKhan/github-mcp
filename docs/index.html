@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GitHub MCP Benchmark</title>
+<meta name="description" content="How often a local LLM picks the right GitHub tool, before and after rewriting the tool descriptions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 1040px reading column; the thesis number up top, then the ablation, the outcome bars,
+   a question-by-question grid, and the description diff. Summary before detail. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #141821;
+  --ink-2: #4b5363;
+  --ink-3: #7b8394;
+  --line: #dde1e8;
+  --accent: #2f54d6;
+  --accent-soft: #e5ebfc;
+  --ok: #1f8a4c;
+  --args: #c88a06;
+  --tool: #d9662b;
+  --fail: #c93636;
+  --ok-soft: #e2f3e8;
+  --args-soft: #fbf0d5;
+  --tool-soft: #fbe6da;
+  --fail-soft: #f8e1e1;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1218; --surface: #171b24; --ink: #e8ebf1; --ink-2: #aab1bf; --ink-3: #7c8496; --line: #2a303c;
+    --accent: #7d97ff; --accent-soft: #1f2846;
+    --ok: #4cc27f; --args: #e2b13c; --tool: #f0875a; --fail: #f06a6a;
+    --ok-soft: #15301f; --args-soft: #352a10; --tool-soft: #3a2116; --fail-soft: #3a1a1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1218; --surface: #171b24; --ink: #e8ebf1; --ink-2: #aab1bf; --ink-3: #7c8496; --line: #2a303c;
+  --accent: #7d97ff; --accent-soft: #1f2846;
+  --ok: #4cc27f; --args: #e2b13c; --tool: #f0875a; --fail: #f06a6a;
+  --ok-soft: #15301f; --args-soft: #352a10; --tool-soft: #3a2116; --fail-soft: #3a1a1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+main { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h2 { font-size: 1.6rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+section { display: grid; gap: 18px; min-width: 0; }
+.lede { color: var(--ink-2); font-size: 1.05rem; }
+
+/* hero */
+.hero { display: grid; gap: 18px; }
+.hero h1 { font-size: clamp(3.2rem, 11vw, 6.5rem); font-weight: 700; letter-spacing: -0.03em; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.3em; }
+.hero h1 .from { color: var(--ink-3); }
+.hero h1 .arrow { color: var(--ink-3); font-weight: 500; font-size: 0.6em; }
+.hero h1 .to { color: var(--accent); }
+.hero .sub { font-size: 1.15rem; color: var(--ink-2); max-width: 60ch; }
+.hero .sub strong { color: var(--ink); }
+.meta-row { display: flex; flex-wrap: wrap; gap: 8px 20px; font: 0.82rem var(--mono); color: var(--ink-3); }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* segmented control */
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 0.85rem var(--body); padding: 7px 14px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* ablation */
+.ablation { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-x: auto; }
+.ablation svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.ablation text { font-family: var(--body); }
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.finding { display: grid; gap: 6px; align-content: start; padding-top: 12px; border-top: 2px solid var(--line); }
+.finding .num { font: 700 1.9rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.finding p { color: var(--ink-2); font-size: 0.92rem; }
+
+/* outcome bars */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.84rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 70px; gap: 14px; align-items: center; }
+.bar-row .label { font-size: 0.88rem; min-width: 0; }
+.bar-row .label b { font-family: var(--mono); font-weight: 500; }
+.bar-row .label small { display: block; color: var(--ink-3); font-size: 0.78rem; }
+.stack { display: flex; height: 26px; border-radius: 6px; overflow: hidden; background: var(--line); }
+.stack div { height: 100%; display: flex; align-items: center; justify-content: center; font: 500 0.72rem var(--mono); color: var(--surface); min-width: 0; overflow: hidden; white-space: nowrap; }
+.tok { font: 0.78rem var(--mono); color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .bar-row { grid-template-columns: 1fr; gap: 4px; } .tok { text-align: left; } }
+
+/* question grid */
+.qwrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+th { text-align: left; font: 500 0.72rem var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); padding: 10px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); }
+td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr.q { cursor: pointer; }
+tr.q:hover td { background: var(--bg); }
+tr.q:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+td.qtext { min-width: 240px; }
+td.qtext small { display: block; color: var(--ink-3); font: 0.74rem var(--mono); }
+.cell { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; font: 0.76rem var(--mono); white-space: nowrap; }
+.cell::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.o-correct { background: var(--ok-soft); color: var(--ok); }
+.o-wrong_args { background: var(--args-soft); color: var(--args); }
+.o-wrong_tool { background: var(--tool-soft); color: var(--tool); }
+.o-failed { background: var(--fail-soft); color: var(--fail); }
+.o-wrong_answer { background: var(--fail-soft); color: var(--fail); }
+.o-no_answer { background: var(--tool-soft); color: var(--tool); }
+tr.detail td { background: var(--bg); }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.detail-grid > div { min-width: 0; display: grid; gap: 4px; align-content: start; }
+pre { margin: 0; font: 0.76rem/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; color: var(--ink-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 0.8rem var(--body); padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.count { font: 0.82rem var(--mono); color: var(--ink-3); }
+
+/* descriptions */
+.diff { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 680px) { .diff { grid-template-columns: 1fr; } }
+.desc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.desc header { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.desc .text { font-size: 0.95rem; }
+.desc .text mark { background: var(--accent-soft); color: var(--accent); padding: 0 2px; border-radius: 3px; }
+.desc dl { margin: 0; display: grid; gap: 6px; font-size: 0.84rem; }
+.desc dt { font-family: var(--mono); color: var(--ink); }
+.desc dd { margin: 0 0 4px; color: var(--ink-2); }
+.note { font-size: 0.88rem; color: var(--ink-2); }
+footer { border-top: 1px solid var(--line); padding-top: 20px; display: grid; gap: 8px; color: var(--ink-3); font-size: 0.85rem; }
+@media (prefers-reduced-motion: no-preference) { .stack div { transition: width 0.4s ease; } }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="eyebrow">github-mcp · tool-selection benchmark</div>
+    <h1 aria-label="63 percent to 95 percent"><span class="from" id="h-from">63%</span><span class="arrow">→</span><span class="to" id="h-to">95%</span></h1>
+    <p class="sub" id="h-sub">How often a 7B model picks the right GitHub tool with the right arguments, before and after rewriting the
+      tool descriptions. <strong>About half of the gain came from accepting bare repo names, not from the new wording.</strong></p>
+    <div class="meta-row" id="h-meta"></div>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/AbdulMuhaiminKhan/github-mcp">Source on GitHub</a>
+      <a class="btn" href="https://github.com/AbdulMuhaiminKhan/github-mcp#decision-file">Decision file</a>
+      <a class="btn" href="https://github.com/AbdulMuhaiminKhan/github-mcp/tree/main/eval/results">Raw results</a>
+    </div>
+  </header>
+
+  <section aria-labelledby="ab-h">
+    <div class="eyebrow">The ablation</div>
+    <h2 id="ab-h">Where the points came from</h2>
+    <p class="lede">v1 has vague descriptions and only accepts <code>owner/name</code>. v1b keeps v1's words but accepts bare names
+      like <code>mcp-bench-app</code>. v2 rewrites every description. Comparing the three separates input handling from wording.</p>
+    <div class="controls" id="model-ctl" hidden><span class="count">Model</span><div class="seg" id="model-seg" role="group" aria-label="Model"></div></div>
+    <div class="ablation"><svg id="waterfall" viewBox="0 0 760 250" role="img" aria-label="Correct answers per configuration"></svg></div>
+    <div class="findings" id="findings"></div>
+  </section>
+
+  <section aria-labelledby="out-h">
+    <div class="eyebrow">Outcomes</div>
+    <h2 id="out-h">Every call, graded</h2>
+    <p class="lede">The harness executes each chosen call through MCP against the seeded benchmark repos and checks the arguments.
+      Medians of 3 runs.</p>
+    <div class="legend" id="legend"></div>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <section aria-labelledby="q-h">
+    <div class="eyebrow">Question by question</div>
+    <h2 id="q-h">What the model actually called</h2>
+    <div class="controls">
+      <div class="seg" id="split-seg" role="group" aria-label="Question set"></div>
+      <div class="chips" id="filter-chips" role="group" aria-label="Filter"></div>
+      <span class="count" id="q-count"></span>
+    </div>
+    <div class="qwrap"><table id="qtable"><thead></thead><tbody></tbody></table></div>
+    <p class="note">Each cell shows the tool the model chose, colored by outcome (the majority across runs). Select a row to see the arguments and the server's reply.</p>
+  </section>
+
+  <section aria-labelledby="d-h">
+    <div class="eyebrow">The rewrite</div>
+    <h2 id="d-h">What the model reads</h2>
+    <p class="lede">The model never sees the code, only each tool's name, description and parameter schema. v2 says what the tool
+      returns, when to use it, and when <em>not</em> to, naming the alternative.</p>
+    <div class="chips" id="tool-chips" role="group" aria-label="Tool"></div>
+    <div class="diff" id="diff"></div>
+  </section>
+
+  <section aria-labelledby="ag-h" id="agent-sec">
+    <div class="eyebrow">Multi-step</div>
+    <h2 id="ag-h">Agent mode</h2>
+    <p class="lede" id="agent-text"></p>
+  </section>
+
+  <footer>
+    <p>Data: two seeded benchmark repos (15 issues, 5 pull requests, commits from two authors) on real GitHub, read through a
+      read-only token. 60 tuning questions, 20 held-out questions written after v2 was frozen. Local models via Ollama, temperature 0.</p>
+    <p id="f-gen"></p>
+  </footer>
+</main>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const B = window.BENCH;
+  if (!B) { document.querySelector("main").insertAdjacentHTML("afterbegin", "<p>data.js is missing. Run <code>python eval/export_dashboard.py</code>.</p>"); return; }
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const OUT = [
+    ["correct", "Correct", "--ok"], ["wrong_args", "Wrong arguments", "--args"],
+    ["wrong_tool", "Wrong tool", "--tool"], ["failed", "Tool failed", "--fail"],
+  ];
+  const AGENT_OUT = { correct: "Correct answer", wrong_answer: "Wrong answer", no_answer: "No answer" };
+  const CAT = { direct: "Direct", overlap: "Overlap", vague: "Vague", bare_name: "Bare name" };
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const pct = (x) => `${Math.round(x)}%`;
+  const short = (t) => (t || "no tool").replace(/^(list_|get_)/, "").replace(/_/g, " ");
+
+  const select = B.configs.filter((c) => c.mode === "select");
+  const models = [...new Set(select.map((c) => c.model))];
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  let model = models.includes(store.get("model")) ? store.get("model") : models[0];
+  let split = "questions", filter = "missed", tool = "list_open_issues", open = null;
+
+  const cfg = (m, ts, sp) => select.find((c) => c.model === m && c.toolset === ts && c.split === sp);
+
+  function seg(el, items, current, onPick) {
+    el.innerHTML = items.map(([v, l]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === current}">${esc(l)}</button>`).join("");
+    el.onclick = (e) => { const b = e.target.closest("button"); if (b) onPick(b.dataset.v); };
+  }
+
+  function hero() {
+    const v1 = cfg(model, "v1", "questions"), v2 = cfg(model, "v2", "questions");
+    if (v1 && v2) { $("#h-from").textContent = pct(v1.pct.correct); $("#h-to").textContent = pct(v2.pct.correct); }
+    $("#h-meta").innerHTML = [
+      `model ${esc(model)}`, `${v2 ? v2.n : 60} questions × ${v2 ? v2.runs : 3} runs`, "6 read-only tools", "$0 · runs locally",
+    ].map((t) => `<span>${t}</span>`).join("");
+  }
+
+  function waterfall() {
+    const steps = [["v1", "v1", "vague text, owner/name only"], ["v1b", "v1b", "+ bare repo names"],
+      ["v2", "v2", "+ rewritten descriptions"], ["held", "v2 held-out", "20 unseen questions"]];
+    const vals = steps.map(([k]) => { const c = k === "held" ? cfg(model, "v2", "heldout") : cfg(model, k, "questions"); return c ? c.pct.correct : null; });
+    const opt = select.find((c) => c.model === model && c.split === "heldout" && !["v1", "v1b", "v2"].includes(c.toolset));
+    const W = 760, H = 250, top = 28, base = 196, left = 40, colW = (W - left - 10) / steps.length;
+    const y = (v) => base - (v / 100) * (base - top);
+    const ink2 = css("--ink-2"), ink3 = css("--ink-3"), line = css("--line"), accent = css("--accent"), soft = css("--accent-soft"), ink = css("--ink");
+    let s = "";
+    [0, 25, 50, 75, 100].forEach((t) => {
+      s += `<line x1="${left}" x2="${W - 10}" y1="${y(t)}" y2="${y(t)}" stroke="${line}" stroke-width="1"/>`;
+      s += `<text x="${left - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="${ink3}">${t}</text>`;
+    });
+    vals.forEach((v, i) => {
+      if (v == null) return;
+      const x = left + i * colW + colW * 0.2, w = colW * 0.6, prev = i > 0 && i < 3 ? vals[i - 1] : null;
+      const isHeld = i === 3;
+      if (prev != null) {
+        s += `<rect x="${x}" y="${y(prev)}" width="${w}" height="${base - y(prev)}" fill="${soft}"/>`;
+        s += `<rect x="${x}" y="${y(v)}" width="${w}" height="${y(prev) - y(v)}" fill="${accent}"/>`;
+        s += `<text x="${x + w + 6}" y="${(y(v) + y(prev)) / 2 + 4}" font-size="12" font-weight="600" fill="${accent}">+${Math.round(v - prev)}</text>`;
+      } else {
+        s += `<rect x="${x}" y="${y(v)}" width="${w}" height="${base - y(v)}" fill="${isHeld ? "none" : soft}" stroke="${isHeld ? accent : "none"}" stroke-width="2" stroke-dasharray="${isHeld ? "5 4" : ""}"/>`;
+      }
+      s += `<text x="${x + w / 2}" y="${y(v) - 8}" text-anchor="middle" font-size="16" font-weight="700" fill="${ink}">${pct(v)}</text>`;
+      s += `<text x="${x + w / 2}" y="${base + 20}" text-anchor="middle" font-size="13" font-weight="600" fill="${ink}">${steps[i][1]}</text>`;
+      s += `<text x="${x + w / 2}" y="${base + 38}" text-anchor="middle" font-size="11" fill="${ink2}">${steps[i][2]}</text>`;
+    });
+    $("#waterfall").innerHTML = s;
+
+    const [a, b, c, h] = vals;
+    const v1 = cfg(model, "v1", "questions"), v2 = cfg(model, "v2", "questions");
+    const items = [];
+    if (a != null && b != null) items.push([`+${Math.round(b - a)}`, "points from input handling", "Same vague words, but the server accepts <code>mcp-bench-app</code> as well as <code>owner/mcp-bench-app</code>. Every bare-name question flips from failed to correct."]);
+    if (b != null && c != null) items.push([`+${Math.round(c - b)}`, "points from the rewrite", "Saying when not to use a tool, and naming the alternative, fixes the overlaps between similar tools."]);
+    if (v1 && v2 && v1.tokens_in && v2.tokens_in) items.push([`+${v2.tokens_in - v1.tokens_in}`, "input tokens per request", `The price of v2: ${v1.tokens_in} → ${v2.tokens_in} tokens every call. Worth it at 6 tools; with dozens, defer tool loading instead.`]);
+    if (h != null) items.push([pct(h), "on held-out questions", "Written after v2 was frozen and never used for tuning, so the gain is not an artifact of tuning on the test set."]);
+    if (opt) items.push([pct(opt.pct.correct), "optimizer on held-out", "Descriptions rewritten automatically from training failures, kept only if held-out accuracy didn't drop."]);
+    $("#findings").innerHTML = items.map(([n, k, t]) => `<div class="finding"><div class="num">${n}</div><strong>${k}</strong><p>${t}</p></div>`).join("");
+  }
+
+  function bars() {
+    $("#legend").innerHTML = OUT.map(([, l, v]) => `<span><i class="sw" style="background:var(${v})"></i>${l}</span>`).join("");
+    const rows = select.filter((c) => c.model === model);
+    $("#bars").innerHTML = rows.map((c) => {
+      const segs = OUT.map(([k, l, v]) => { const p = c.pct[k] || 0; return p ? `<div style="width:${p}%;background:var(${v})" title="${l}: ${pct(p)}">${p >= 7 ? pct(p) : ""}</div>` : ""; }).join("");
+      const label = c.split === "heldout" ? "held-out" : `${c.n} questions`;
+      return `<div class="bar-row"><div class="label"><b>${esc(c.toolset)}</b> · ${label}<small>${esc(c.model)}</small></div><div class="stack" role="img" aria-label="${esc(c.toolset)}: ${pct(c.pct.correct)} correct">${segs}</div><div class="tok">${c.tokens_in ?? "–"} tok</div></div>`;
+    }).join("");
+  }
+
+  function questionTable() {
+    const sets = [["questions", "60 questions"], ["heldout", "Held-out"]].filter(([s]) => B.questions[s]);
+    seg($("#split-seg"), sets, split, (v) => { split = v; open = null; questionTable(); });
+    const filters = [["all", "All"], ["missed", "Any miss"], ["changed", "Changed v1 → v2"], ["bare_name", "Bare name"], ["overlap", "Overlap"]];
+    $("#filter-chips").innerHTML = filters.map(([v, l]) => `<button type="button" class="chip" data-v="${v}" aria-pressed="${v === filter}">${l}</button>`).join("");
+    $("#filter-chips").onclick = (e) => { const b = e.target.closest("button"); if (b) { filter = b.dataset.v; open = null; questionTable(); } };
+
+    const cols = select.filter((c) => c.model === model && c.split === split);
+    const qs = B.questions[split] || [];
+    const show = qs.filter((q) => {
+      const cells = cols.map((c) => c.cells[q.id]).filter(Boolean);
+      if (filter === "missed") return cells.some((x) => x.outcome !== "correct");
+      if (filter === "changed") return new Set(cells.map((x) => x.outcome)).size > 1;
+      if (filter === "bare_name" || filter === "overlap") return q.category.split(":")[0] === filter;
+      return true;
+    });
+    $("#q-count").textContent = `${show.length} of ${qs.length}`;
+    $("#qtable thead").innerHTML = `<tr><th>Question</th><th>Expected</th>${cols.map((c) => `<th>${esc(c.toolset)}</th>`).join("")}</tr>`;
+    $("#qtable tbody").innerHTML = show.map((q) => {
+      const cat = q.category.split(":")[0];
+      const cells = cols.map((c) => {
+        const x = c.cells[q.id];
+        if (!x) return "<td>–</td>";
+        const unanimous = x.agree === x.runs ? "" : ` (${x.agree}/${x.runs})`;
+        return `<td><span class="cell o-${x.outcome}" title="${esc(OUT.find((o) => o[0] === x.outcome)?.[1] || x.outcome)}">${esc(short(x.tool))}${unanimous}</span></td>`;
+      }).join("");
+      const row = `<tr class="q" tabindex="0" data-id="${q.id}" aria-expanded="${open === q.id}"><td class="qtext">${esc(q.question)}<small>${q.id} · ${CAT[cat] || esc(cat)}</small></td><td><code>${esc(q.expected_tool)}</code></td>${cells}</tr>`;
+      if (open !== q.id) return row;
+      const det = cols.map((c) => {
+        const x = c.cells[q.id]; if (!x) return "";
+        const label = OUT.find((o) => o[0] === x.outcome)?.[1] || x.outcome;
+        return `<div><span class="eyebrow">${esc(c.toolset)} · ${label}</span><pre>${esc(x.tool || "(no tool)")}(${esc(JSON.stringify(x.args))})</pre>${x.detail ? `<pre>${esc(x.detail)}</pre>` : ""}</div>`;
+      }).join("");
+      return row + `<tr class="detail"><td colspan="${2 + cols.length}"><div class="detail-grid">${det}</div></td></tr>`;
+    }).join("") || `<tr><td colspan="${2 + cols.length}">No questions match this filter.</td></tr>`;
+    const tb = $("#qtable tbody");
+    const toggle = (tr) => { open = open === tr.dataset.id ? null : tr.dataset.id; questionTable(); tb.querySelector(`tr[data-id="${tr.dataset.id}"]`)?.focus(); };
+    tb.onclick = (e) => { const tr = e.target.closest("tr.q"); if (tr) toggle(tr); };
+    tb.onkeydown = (e) => { const tr = e.target.closest("tr.q"); if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(tr); } };
+  }
+
+  function diff() {
+    const D = B.descriptions, names = Object.keys(D.v2.tools);
+    $("#tool-chips").innerHTML = names.map((n) => `<button type="button" class="chip mono" data-v="${n}" aria-pressed="${n === tool}">${n}</button>`).join("");
+    $("#tool-chips").onclick = (e) => { const b = e.target.closest("button"); if (b) { tool = b.dataset.v; diff(); } };
+    const hi = (t) => esc(t).replace(/(Do NOT[^.]*\.?|use [a-z_]+(?= instead)|\(use [a-z_]+\))/g, "<mark>$1</mark>");
+    const used = (set) => Object.entries(set.params).filter(([p]) => (B.descriptions.v2.tools[tool] || "") && paramsFor(tool).includes(p));
+    const card = (key, title) => {
+      const set = D[key]; if (!set) return "";
+      const text = set.tools[tool] || "";
+      const params = used(set).map(([p, d]) => `<dt>${p}</dt><dd>${esc(d)}</dd>`).join("");
+      return `<article class="desc"><header><span class="eyebrow">${title}</span><span class="count">${text.length} chars${set.bare_names ? " · bare names ok" : " · owner/name only"}</span></header><div class="text">${key === "v1" ? esc(text) : hi(text)}</div>${params ? `<dl>${params}</dl>` : ""}</article>`;
+    };
+    $("#diff").innerHTML = card("v1", "v1 · baseline") + card("v2", "v2 · rewritten") + (D.optimized ? card("optimized", "optimizer's best") : "");
+  }
+  const PARAMS = {
+    list_repositories: ["visibility", "sort", "limit"], get_repository: ["repo"], list_open_issues: ["repo", "label", "limit"],
+    search_issues: ["query", "repo", "state", "limit"], list_pull_requests: ["repo", "pr_state", "limit"],
+    get_recent_commits: ["repo", "since_days", "author", "branch", "limit"],
+  };
+  const paramsFor = (t) => PARAMS[t] || [];
+
+  function agent() {
+    const ag = B.configs.filter((c) => c.mode === "agent" && c.model === model);
+    if (!ag.length) { $("#agent-sec").hidden = true; return; }
+    $("#agent-sec").hidden = false;
+    const parts = ag.map((c) => `${esc(c.toolset)} ${pct(c.pct.correct)}`).join(", ");
+    $("#agent-text").innerHTML = `In multi-step runs the model calls tools until it can answer, and the answer is checked against facts from the seeded repos (${ag[0].n} questions): ${parts}. With ${ag[0].n} questions one answer moves the score by ${Math.round(100 / ag[0].n)} points, so this difference is within noise.`;
+  }
+
+  function render() {
+    if (models.length > 1) {
+      $("#model-ctl").hidden = false;
+      seg($("#model-seg"), models.map((m) => [m, m]), model, (v) => { model = v; store.set("model", v); open = null; render(); });
+    }
+    hero(); waterfall(); bars(); questionTable(); diff(); agent();
+    $("#f-gen").innerHTML = `Generated ${esc(B.generated)} from <code>eval/results/</code> by <code>eval/export_dashboard.py</code>.`;
+  }
+  render();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", waterfall);
+  new MutationObserver(waterfall).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>
+</body>
+</html>

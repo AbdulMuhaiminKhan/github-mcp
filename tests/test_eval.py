@@ -126,7 +126,7 @@ def fake_env(monkeypatch):
 
 def eval_args(**overrides):
     base = dict(mode="select", toolset="v2", backend="oracle", model=None, effort="low", ollama_url="",
-                questions=None, limit=None, runs=1, max_steps=8, markdown=False, server=None,
+                questions=None, limit=None, runs=1, max_steps=8, markdown=False, fake_github=True, server=None,
                 domain="the tools below", label=None, results_dir=None)
     return argparse.Namespace(**{**base, **overrides})
 

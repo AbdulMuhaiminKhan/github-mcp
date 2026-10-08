@@ -85,6 +85,7 @@ class Row:
     backend: str = ""
     model: str = ""
     split: str = ""
+    data: str = ""  # "github" or "fake-github"; empty in files written before this field existed
     input_tokens: int | None = None
     output_tokens: int | None = None
     tool_calls: list[dict[str, Any]] = field(default_factory=list)
@@ -237,7 +238,7 @@ async def run_agent(mcp: Client, backend: Any, questions: list[dict[str, Any]], 
 
 
 async def run(args: argparse.Namespace) -> list[Row]:
-    if args.server:
+    if getattr(args, "server", None):
         return await run_custom(args)
     subs = substitutions()
     if args.mode == "agent" and (subs["repo_name"], subs["repo2_name"]) != ("mcp-bench-app", "mcp-bench-lib"):
@@ -249,8 +250,8 @@ async def run(args: argparse.Namespace) -> list[Row]:
     questions = load_questions(qpath, subs)[: args.limit]
     backend = make_backend(args, subs)
     meta = {"mode": args.mode, "toolset": toolset_label(args.toolset), "backend": args.backend,
-            "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem}
-
+            "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem,
+            "data": "fake-github" if getattr(args, "fake_github", False) else "github"}
     return await execute(args, server_params(args.toolset), backend, questions, subs, meta, qpath)
 
 
@@ -264,7 +265,7 @@ async def run_custom(args: argparse.Namespace) -> list[Row]:
     questions = load_questions(qpath, subs)[: args.limit]
     backend = make_backend(args, subs)
     meta = {"mode": args.mode, "toolset": args.label or server_label(args.server), "backend": args.backend,
-            "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem}
+            "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem, "data": "custom"}
     return await execute(args, custom_server_params(args.server), backend, questions, subs, meta, qpath)
 
 
@@ -278,7 +279,7 @@ async def execute(args: argparse.Namespace, params: StdioServerParameters, backe
             else:
                 rows += await run_select(mcp, backend, questions, subs, meta, r)
 
-    results_dir = Path(args.results_dir) if args.results_dir else RESULTS_DIR
+    results_dir = Path(args.results_dir) if getattr(args, "results_dir", None) else RESULTS_DIR
     results_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
     model = re.sub(r"[^A-Za-z0-9._-]", "-", meta["model"])
