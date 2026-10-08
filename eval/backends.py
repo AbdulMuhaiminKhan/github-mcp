@@ -15,15 +15,25 @@ from typing import Any
 
 import httpx
 
-SYSTEM_PROMPT = (
-    "You are an assistant connected to the user's GitHub account through tools. "
-    "Answer the user's question by calling the single most appropriate tool."
-)
-AGENT_SYSTEM_PROMPT = (
-    "You are an assistant connected to the user's GitHub account through tools. "
-    "Use the tools to find the facts you need, then answer the user's question in one or two "
-    "sentences. Base the answer only on tool results."
-)
+DEFAULT_DOMAIN = "the user's GitHub account"
+SYSTEM_PROMPT = AGENT_SYSTEM_PROMPT = ""
+
+
+def set_domain(domain: str = DEFAULT_DOMAIN) -> None:
+    """Name what the tools connect to in the system prompts (another MCP server -> another domain)."""
+    global SYSTEM_PROMPT, AGENT_SYSTEM_PROMPT
+    SYSTEM_PROMPT = (
+        f"You are an assistant connected to {domain} through tools. "
+        "Answer the user's question by calling the single most appropriate tool."
+    )
+    AGENT_SYSTEM_PROMPT = (
+        f"You are an assistant connected to {domain} through tools. "
+        "Use the tools to find the facts you need, then answer the user's question in one or two "
+        "sentences. Base the answer only on tool results."
+    )
+
+
+set_domain()
 
 ToolCaller = Callable[[str, dict[str, Any]], Awaitable[tuple[str, bool]]]  # -> (result text, is_error)
 

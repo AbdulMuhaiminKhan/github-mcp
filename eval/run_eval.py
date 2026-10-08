@@ -26,6 +26,11 @@ Usage:
   python eval/run_eval.py --fake-github --backend oracle --toolset v2 --min-correct 100
   python eval/run_eval.py --compare eval/results/A.jsonl eval/results/B.jsonl
   python eval/run_eval.py --report eval/results/A.jsonl --markdown
+
+Any MCP server (not just this one): pass the command that starts it and your own questions.
+  python eval/run_eval.py --server "npx -y @modelcontextprotocol/server-filesystem ." \\
+      --questions my_questions.jsonl --domain "the user's files"
+  See examples/ for a complete small example.
 """
 
 from __future__ import annotations
@@ -35,6 +40,7 @@ import asyncio
 import json
 import os
 import re
+import shlex
 import statistics
 import sys
 import time
@@ -47,7 +53,7 @@ from mcp import Client
 from mcp.client.stdio import StdioServerParameters
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from backends import AnthropicBackend, OllamaBackend, OracleBackend  # noqa: E402
+from backends import AnthropicBackend, OllamaBackend, OracleBackend, set_domain  # noqa: E402
 from grading import check_args, fill, schema_defaults  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -127,6 +133,20 @@ def make_backend(args: argparse.Namespace, subs: dict[str, str]) -> Any:
     if args.backend == "oracle":
         return OracleBackend(subs)
     return OllamaBackend(model, args.ollama_url)
+
+
+def server_label(command: str) -> str:
+    """A short file-name-safe name for a --server command, e.g. 'notes_server' for 'python examples/notes_server.py'."""
+    parts = [Path(p).stem for p in shlex.split(command, posix=os.name != "nt") if not p.startswith("-") and Path(p).stem]
+    meaningful = [p for p in parts if p.lower() not in {"python", "python3", "py", "npx", "uvx", "node", "uv", "run"}]
+    return re.sub(r"[^A-Za-z0-9._-]", "-", (meaningful or parts or ["server"])[-1])[:40]
+
+
+def custom_server_params(command: str) -> StdioServerParameters:
+    parts = shlex.split(command, posix=os.name != "nt")
+    if parts and parts[0] in {"python", "python3", "py"}:
+        parts[0] = sys.executable  # the same interpreter (and venv) as the harness
+    return StdioServerParameters(command=parts[0], args=parts[1:], env={**os.environ})
 
 
 def server_params(toolset: str) -> StdioServerParameters:
@@ -217,6 +237,8 @@ async def run_agent(mcp: Client, backend: Any, questions: list[dict[str, Any]], 
 
 
 async def run(args: argparse.Namespace) -> list[Row]:
+    if args.server:
+        return await run_custom(args)
     subs = substitutions()
     if args.mode == "agent" and (subs["repo_name"], subs["repo2_name"]) != ("mcp-bench-app", "mcp-bench-lib"):
         sys.exit("Agent mode checks answers against the seeded benchmark repos. Point EVAL_REPO / EVAL_REPO2 at "
@@ -229,18 +251,38 @@ async def run(args: argparse.Namespace) -> list[Row]:
     meta = {"mode": args.mode, "toolset": toolset_label(args.toolset), "backend": args.backend,
             "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem}
 
+    return await execute(args, server_params(args.toolset), backend, questions, subs, meta, qpath)
+
+
+async def run_custom(args: argparse.Namespace) -> list[Row]:
+    """Benchmark any stdio MCP server: --server starts it, --questions says what to ask and expect."""
+    if not args.questions:
+        sys.exit("--server needs --questions: a JSONL file of {id, question, expected_tool, expected_args}.")
+    set_domain(args.domain)
+    subs: dict[str, str] = {}
+    qpath = Path(args.questions)
+    questions = load_questions(qpath, subs)[: args.limit]
+    backend = make_backend(args, subs)
+    meta = {"mode": args.mode, "toolset": args.label or server_label(args.server), "backend": args.backend,
+            "model": args.model or DEFAULT_MODEL[args.backend], "split": qpath.stem}
+    return await execute(args, custom_server_params(args.server), backend, questions, subs, meta, qpath)
+
+
+async def execute(args: argparse.Namespace, params: StdioServerParameters, backend: Any,
+                  questions: list[dict[str, Any]], subs: dict[str, str], meta: dict[str, Any], qpath: Path) -> list[Row]:
     rows: list[Row] = []
-    async with Client(server_params(args.toolset)) as mcp:
+    async with Client(params) as mcp:
         for r in range(args.runs):
             if args.mode == "agent":
                 rows += await run_agent(mcp, backend, questions, subs, meta, r, args.max_steps)
             else:
                 rows += await run_select(mcp, backend, questions, subs, meta, r)
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    results_dir = Path(args.results_dir) if args.results_dir else RESULTS_DIR
+    results_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
     model = re.sub(r"[^A-Za-z0-9._-]", "-", meta["model"])
-    out = RESULTS_DIR / f"{args.mode}-{meta['toolset']}-{args.backend}-{model}-{meta['split']}-{stamp}.jsonl"
+    out = results_dir / f"{args.mode}-{meta['toolset']}-{args.backend}-{model}-{meta['split']}-{stamp}.jsonl"
     with out.open("w", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(asdict(row), ensure_ascii=False) + "\n")
@@ -379,6 +421,11 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None, help="only run the first N questions")
     ap.add_argument("--runs", type=int, default=1, help="repeat the whole set N times; medians are reported")
     ap.add_argument("--max-steps", type=int, default=8, help="agent mode: tool-calling turns before giving up")
+    ap.add_argument("--server", help="benchmark another MCP server: the command that starts it over stdio")
+    ap.add_argument("--domain", default="the tools below",
+                    help="with --server: what the tools connect to, for the system prompt (e.g. \"the user's files\")")
+    ap.add_argument("--label", help="with --server: name used in results files (default: from the command)")
+    ap.add_argument("--results-dir", help="where to save the results file (default: eval/results)")
     ap.add_argument("--fake-github", action="store_true", help="use the offline benchmark repos (no token needed)")
     ap.add_argument("--min-correct", type=float, help="exit with status 1 if median correct %% is below this")
     ap.add_argument("--markdown", action="store_true", help="print summary tables as Markdown")

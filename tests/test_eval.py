@@ -126,7 +126,8 @@ def fake_env(monkeypatch):
 
 def eval_args(**overrides):
     base = dict(mode="select", toolset="v2", backend="oracle", model=None, effort="low", ollama_url="",
-                questions=None, limit=None, runs=1, max_steps=8, markdown=False)
+                questions=None, limit=None, runs=1, max_steps=8, markdown=False, server=None,
+                domain="the tools below", label=None, results_dir=None)
     return argparse.Namespace(**{**base, **overrides})
 
 
@@ -142,6 +143,22 @@ async def test_oracle_scores_100_on_v2_and_v1_fails_only_bare_names(monkeypatch,
     failed = {r.id for r in v1 if r.outcome != run_eval.CORRECT}
     assert failed == {r.id for r in v1 if r.category == "bare_name"} and len(failed) == 10
     assert len(list(tmp_path.glob("select-v2-oracle-*.jsonl"))) == 1
+
+
+async def test_any_mcp_server_can_be_benchmarked(tmp_path):
+    root = EVAL.parent
+    args = eval_args(server=f"python {root / 'examples' / 'notes_server.py'}", label="notes",
+                     questions=str(root / "examples" / "notes_questions.jsonl"), results_dir=str(tmp_path))
+    rows = await run_eval.run(args)
+    assert len(rows) == 10 and {r.outcome for r in rows} == {run_eval.CORRECT}
+    assert len(list(tmp_path.glob("select-notes-oracle-*.jsonl"))) == 1
+
+
+def test_custom_server_command_and_label():
+    params = run_eval.custom_server_params("python examples/notes_server.py --flag")
+    assert params.command == run_eval.sys.executable and params.args == ["examples/notes_server.py", "--flag"]
+    assert run_eval.server_label("npx -y @modelcontextprotocol/server-filesystem .") == "server-filesystem"
+    assert run_eval.server_label("python examples/notes_server.py") == "notes_server"
 
 
 class ScriptedAgent:

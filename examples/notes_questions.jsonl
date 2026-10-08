@@ -1,0 +1,10 @@
+{"id": "n01", "question": "What notes do I have?", "expected_tool": "list_notes", "category": "direct", "expected_args": {}}
+{"id": "n02", "question": "Show my work notes.", "expected_tool": "list_notes", "category": "overlap:notes_by_tag", "expected_args": {"folder": "work"}}
+{"id": "n03", "question": "What are my 2 most recent notes?", "expected_tool": "list_notes", "category": "direct", "expected_args": {"limit": 2}}
+{"id": "n04", "question": "Open note 3.", "expected_tool": "get_note", "category": "direct", "expected_args": {"note_id": 3}}
+{"id": "n05", "question": "What does note #1 say?", "expected_tool": "get_note", "category": "direct", "expected_args": {"note_id": 1}}
+{"id": "n06", "question": "Which note mentions caching?", "expected_tool": "search_notes", "category": "direct", "expected_args": {"query": {"contains": "caching"}}}
+{"id": "n07", "question": "Did I write anything about coffee?", "expected_tool": "search_notes", "category": "overlap:list_notes", "expected_args": {"query": {"contains": "coffee"}}}
+{"id": "n08", "question": "Find my note about Lisbon.", "expected_tool": "search_notes", "category": "overlap:get_note", "expected_args": {"query": {"contains": "lisbon"}}}
+{"id": "n09", "question": "Which notes are tagged travel?", "expected_tool": "notes_by_tag", "category": "direct", "expected_args": {"tag": "travel"}}
+{"id": "n10", "question": "Show everything with the #career tag.", "expected_tool": "notes_by_tag", "category": "overlap:search_notes", "expected_args": {"tag": "career"}}
