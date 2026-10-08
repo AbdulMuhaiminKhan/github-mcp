@@ -93,6 +93,20 @@ configuration, medians reported. The three runs differed by at most 2 points on 
 
 The offline run against the fake GitHub gave the same picture (65% / 82% / 95%).
 
+**A second model, llama3.1:8b**, same questions and settings:
+
+| Configuration (llama3.1:8b) | Correct |
+|---|---|
+| v1: vague descriptions | 32% |
+| v1b: v1 + bare repo names | 47% |
+| v2: rewritten descriptions | 92% |
+| v2 on held-out questions | 95% |
+
+Llama picked the right tool 88% of the time even on v1. It failed on arguments: it asked for
+`limit=100` on tools capped at 50 again and again, and passed `owner/repo` where a bare name was
+expected. The fixes that helped qwen (bare names, the stated limit range) helped llama even more, so the
+lesson carries across models: spell out argument constraints, not just what the tool does.
+
 **Agent mode** (13 multi-step questions, answers checked against the seeded data): v1 **62%**, v2 **69%**.
 With 13 questions one answer is 8 points, so that difference is within noise (offline it went the other way).
 
